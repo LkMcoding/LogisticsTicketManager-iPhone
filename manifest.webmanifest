@@ -1,0 +1,16 @@
+{
+  "name": "Logistics Ticket Manager iPhone",
+  "short_name": "Logistics Tickets",
+  "description": "Gestione locale offline dei ticket logistici",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#12263d",
+  "theme_color": "#12263d",
+  "lang": "it",
+  "icons": [
+    {"src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

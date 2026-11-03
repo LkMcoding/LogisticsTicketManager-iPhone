@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#12263d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Logistics Tickets">
+  <meta name="description" content="Gestione offline dei ticket logistici sul tuo iPhone.">
+  <title>Logistics Ticket Manager</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/icon-180.png">
+  <link rel="icon" href="./icons/icon-192.png" type="image/png">
+  <link rel="stylesheet" href="./styles.css">
+  <script defer src="./app.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-main"><div class="brand-icon" aria-hidden="true">L</div><div><div class="eyebrow">GESTIONE LOGISTICA LOCALE</div><h1>Logistics Ticket Manager</h1><div class="version">iPhone · Beta 0.1 · Offline</div></div></div>
+    <div class="header-actions">
+      <button id="backup-export" class="button small secondary" type="button" title="Esporta un backup dei dati">↓ Backup</button>
+      <label class="button small secondary import-label" for="backup-import">↑ Importa<input id="backup-import" type="file" accept=".json,application/json" hidden></label>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="local-hint"><span class="local-dot" aria-hidden="true"></span> I ticket rimangono su questo dispositivo. Effettua backup regolari.</div>
+    <nav class="tabs" aria-label="Sezioni">
+      <button data-view="board" class="tab selected" type="button">▤ Bacheca</button>
+      <button data-view="calendar" class="tab" type="button">▦ Calendario</button>
+      <button data-view="archive" class="tab" type="button">▣ Archivio <span id="archive-count" class="counter">0</span></button>
+    </nav>
+
+    <div class="toolbar">
+      <label class="search-box"><span aria-hidden="true">⌕</span><input id="search" autocomplete="off" type="search" placeholder="Ordine, tracking, email…" aria-label="Cerca ticket"></label>
+      <button id="new-ticket" class="button primary" type="button">+ Ticket</button>
+    </div>
+    <div class="filters" id="filters">
+      <label>Stato <select id="filter-status"><option value="all">Tutti</option><option value="open">Da concludere</option><option value="done">Conclusi</option></select></label>
+      <label>Corriere <select id="filter-courier"><option value="all">Tutti</option><option value="AMAZON">AMAZON</option><option value="HR">HR</option><option value="Non riconosciuto">Non riconosciuto</option><option value="Non inserito">Non inserito</option></select></label>
+      <label>Etichetta <select id="filter-label"><option value="all">Tutte</option></select></label>
+    </div>
+
+    <section id="view-board" class="view">
+      <div class="section-header"><div><h2>Bacheca</h2><p>Scorri in orizzontale tra le colonne. Scorri i ticket dentro ogni colonna.</p></div><button id="new-column" class="button small secondary" type="button">+ Colonna</button></div>
+      <div id="board" class="board" aria-label="Bacheca ticket"></div>
+    </section>
+
+    <section id="view-calendar" class="view hidden">
+      <div class="section-header"><div><h2>Calendario</h2><p>Eventi e scadenze dei ticket attivi.</p></div></div>
+      <div class="calendar-bar"><button id="calendar-prev" type="button" class="button small secondary" aria-label="Mese precedente">‹</button><h3 id="calendar-title"></h3><button id="calendar-next" type="button" class="button small secondary" aria-label="Mese successivo">›</button><button id="calendar-today" type="button" class="button small secondary">Oggi</button></div>
+      <div id="calendar-grid" class="calendar-grid"></div><div id="calendar-day-list" class="calendar-day-list"></div>
+    </section>
+
+    <section id="view-archive" class="view hidden">
+      <div class="section-header"><div><h2>Archivio</h2><p>Ticket conclusi e archiviati; puoi ripristinarli.</p></div></div>
+      <div id="archive-list" class="archive-list"></div>
+    </section>
+
+    <footer class="footer">Versione iPhone indipendente · Nessun account · Backup manuale JSON<br><span>Questa beta non importa ancora direttamente il backup SQLite di Windows.</span></footer>
+  </main>
+
+  <dialog id="ticket-dialog" class="ticket-dialog">
+    <div class="dialog-head"><div><div class="eyebrow">TICKET LOGISTICO</div><h2 id="dialog-title">Nuovo ticket</h2></div><button id="close-dialog" class="icon-button" type="button" aria-label="Chiudi">×</button></div>
+    <form id="ticket-form" novalidate>
+      <input type="hidden" id="ticket-id">
+      <div class="form-grid">
+        <label class="field full">Numero ordine * <input id="field-order" required autocomplete="off" placeholder="Es. 1303582301" maxlength="100"></label>
+        <label class="field">Colonna <select id="field-column" required></select></label>
+        <label class="field">Tracking <input id="field-tracking" autocomplete="off" placeholder="IT… oppure 166…" maxlength="200"></label>
+        <div class="courier-display full" id="courier-display">Corriere: Non inserito</div>
+        <label class="field">Data evento <input id="field-event" type="date"></label>
+        <label class="field">Data inserimento <input id="field-insert" type="date"></label>
+        <label class="field full">Email <input id="field-email" type="email" placeholder="destinatario@email.it" maxlength="240"></label>
+        <label class="field">Scadenza <input id="field-due" type="date"></label>
+        <label class="check-row"><input id="field-ten-days" type="checkbox"> Calcola 10 giorni lavorativi</label>
+        <label class="field full">Note <textarea id="field-notes" rows="3" placeholder="Informazioni utili…"></textarea></label>
+      </div>
+      <fieldset class="label-fieldset"><legend>Etichette</legend><div id="label-choices" class="label-choices"></div></fieldset>
+      <label class="check-row status-check"><input id="field-completed" type="checkbox"> Ticket concluso</label>
+      <section id="comments-section" class="comments-section hidden"><h3>Commenti</h3><div id="comments-list"></div><div class="comment-composer"><input id="comment-text" placeholder="Scrivi un commento…" maxlength="1000"><button id="add-comment" type="button" class="button small secondary">Aggiungi</button></div></section>
+      <div class="dialog-actions"><button id="archive-action" class="button danger hidden" type="button">Archivia</button><button id="restore-action" class="button secondary hidden" type="button">Ripristina</button><button class="button primary" id="save-ticket" type="submit">Salva ticket</button></div>
+    </form>
+  </dialog>
+  <div id="toast" role="status" class="toast hidden"></div>
+</body>
+</html>
